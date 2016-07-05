@@ -1803,11 +1803,131 @@ sub dump_ABI()
         open(DUMP, ">", $OutputDump) || die ("can't open file \'$OutputDump\': $!\n");
         print DUMP $ABI_DUMP;
         close(DUMP);
+	symbolinfo2hash(\%SymbolInfo);
+	typeinfo2hash(\%TypeInfo);
         
         printMsg("INFO", "\nThe object ABI has been dumped to:\n  $OutputDump");
     }
 }
 
+sub symbolinfo2hash($)
+{
+	my $Info = $_[0];
+	print "{\n";
+	my $first = 1;
+	while (my ($seq,$def)=each $Info){
+#		print "seq: $seq\n";
+		if ( ref($def) == HASH ) {
+			if ( $first != 1 ) {
+				print ",\n";
+			}
+			while (my ($name,$val)=each $def){
+				if ( $name eq "ShortName" ) {
+					print "\"$val\":[\n";
+				}
+
+			}
+			while (my ($name,$val)=each $def){
+				if ( $name eq "Param" ) {
+					print "    {\"Param\":{\n";
+					my $firstparam = 1;
+					while (my ($param_name,$param_val)=each $val){
+						if ( $firstparam != 1 ) {
+							print ",\n";
+						}
+#						print "    $param_name\n";
+						while (my ($n,$v)=each $param_val){
+							if ( $n eq "name" ) {
+								print "        \"$v\": ";
+							}
+						}
+						while (my ($n,$v)=each $param_val){
+							if ( $n eq "type" ) {
+								print "\"$v\"";
+							}
+						}
+						$firstparam = 0;
+					}
+					print "    }},\n";
+				}
+
+			}
+			while (my ($name,$val)=each $def){
+				if ( $name eq "Return" ) {
+					print "    {\"$name\": \"$val\"}\n";
+				}
+
+			}
+			print "]";
+			$first = 0;
+		}
+	}
+	print "}\n";
+}
+
+sub typeinfo2hash($)
+{
+	my $Info = $_[0];
+	print "{\n";
+	my $first = 1;
+	while (my ($seq,$def)=each $Info){
+#		print "seq: $seq\n";
+		if ( ref($def) == HASH ) {
+			if ( $first != 1 ) {
+				print ",\n";
+			}
+			print "\"$seq\":[\n";
+			while (my ($name,$val)=each $def){
+				if ( $name eq "Name" ) {
+					print "    {\"$name\":\"$val\"},\n";
+				}
+			}
+			while (my ($name,$val)=each $def){
+				if ( $name eq "BaseType" ) {
+					print "    {\"$name\":\"$val\"},\n";
+				}
+			}
+			while (my ($name,$val)=each $def){
+				if ( $name eq "Type" ) {
+					print "    {\"$name\":\"$val\"}";
+				}
+			}
+			while (my ($name,$val)=each $def){
+				if ( $name eq "Memb" ) {
+					print ",\n";
+					print "    {\"$name\":{\n";
+					my $firstparam = 1;
+					while (my ($param_name,$param_val)=each $val){
+						if ( $firstparam != 1 ) {
+							print ",\n";
+						}
+#						print "    $param_name\n";
+						while (my ($n,$v)=each $param_val){
+							if ( $n eq "name" ) {
+								print "        \"$v\": ";
+							}
+						}
+						while (my ($n,$v)=each $param_val){
+							if ( $n eq "type" ) {
+								print "\"$v\"";
+							}
+						}
+						$firstparam = 0;
+					}
+					print "    }}";
+				}
+
+			}
+			print "]";
+			$first = 0;
+		}
+	}
+	print "}\n";
+}
+
+ sub unmangleString($)
+ {
+     my $Str = $_[0];
 sub unmangleString($)
 {
     my $Str = $_[0];
